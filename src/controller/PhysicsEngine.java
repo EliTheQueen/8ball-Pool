@@ -5,45 +5,106 @@ import java.util.ArrayList;
 
 public class PhysicsEngine {
 
+    private static final double FRICTION = 0.99; // ضریب اصطکاک
+    private static final double STOP_THRESHOLD = 0.1; // آستانه توقف
+
+    public void updatePhysics(ArrayList<Ball> balls, int width, int height) {
+        // ۱. حرکت و اصطکاک و برخورد با دیوار
+        for (Ball b : balls) {
+            applyFriction(b);
+            moveBall(b);
+            checkWallCollision(b, width, height);
+        }
+
+        // ۲. برخورد توپ با توپ
+        handleBallCollisions(balls);
+    }
+
+    private void applyFriction(Ball b) {
+        b.setVx(b.getVx() * FRICTION);
+        b.setVy(b.getVy() * FRICTION);
+
+        if (Math.abs(b.getVx()) < STOP_THRESHOLD) b.setVx(0);
+        if (Math.abs(b.getVy()) < STOP_THRESHOLD) b.setVy(0);
+    }
+
+    private void moveBall(Ball b) {
+        b.setX(b.getX() + b.getVx());
+        b.setY(b.getY() + b.getVy());
+    }
+
+    private void checkWallCollision(Ball b, int width, int height) {
+        double r = b.getRadius();
+        if (b.getX() - r < 0) {
+            b.setX(r);
+            b.setVx(-b.getVx());
+        } else if (b.getX() + r > width) {
+            b.setX(width - r);
+            b.setVx(-b.getVx());
+        }
+
+        if (b.getY() - r < 0) {
+            b.setY(r);
+            b.setVy(-b.getVy());
+        } else if (b.getY() + r > height) {
+            b.setY(height - r);
+            b.setVy(-b.getVy());
+        }
+    }
+
+    private void handleBallCollisions(ArrayList<Ball> balls) {
+        for (int i = 0; i < balls.size(); i++) {
+            for (int j = i + 1; j < balls.size(); j++) {
+                Ball b1 = balls.get(i);
+                Ball b2 = balls.get(j);
+                if (isColliding(b1, b2)) {
+                    resolveCollision(b1, b2);
+                }
+            }
+        }
+    }
+
+    private boolean isColliding(Ball b1, Ball b2) {
+        double dx = b1.getX() - b2.getX();
+        double dy = b1.getY() - b2.getY();
+        double distSq = dx * dx + dy * dy;
+        double rSum = b1.getRadius() + b2.getRadius();
+        return distSq <= rSum * rSum;
+    }
+
     private void resolveCollision(Ball b1, Ball b2) {
-        // ۱. محاسبه فاصله و بردار بین دو مرکز
+        // ۱. محاسبه فاصله
         double dx = b2.getX() - b1.getX();
         double dy = b2.getY() - b1.getY();
         double distance = Math.sqrt(dx * dx + dy * dy);
 
-        // اگر توپ‌ها دقیقاً روی هم باشند یا برخوردی نباشد، خارج شو
-        if (distance == 0 || distance > (b1.getRadius() + b2.getRadius())) return;
+        // جلوگیری از تقسیم بر صفر
+        if (distance == 0) return;
 
-        // ۲. بردار نرمال واحد (Unit Normal Vector) - جهتی که ضربه وارد می‌شود
+        // ۲. بردار نرمال واحد
         double nx = dx / distance;
         double ny = dy / distance;
 
-        // ۳. سرعت نسبی دو توپ
-        double relativeVx = b1.getVx() - b2.getVx();
-        double relativeVy = b1.getVy() - b2.getVy();
+        // ۳. سرعت نسبی
+        double relVx = b1.getVx() - b2.getVx();
+        double relVy = b1.getVy() - b2.getVy();
 
-        // ۴. محاسبه سرعت در راستای بردار نرمال (Scalar Product)
-        double velocityAlongNormal = (relativeVx * nx + relativeVy * ny);
+        // ۴. سرعت در راستای برخورد
+        double velAlongNormal = relVx * nx + relVy * ny;
 
-        // ۵. بسیار مهم: اگر توپ‌ها در حال دور شدن هستند، عملیات را متوقف کن
-        // این خط جلوی "چسبیدن" توپ‌ها به هم را می‌گیرد
-        if (velocityAlongNormal < 0) return;
+        // ۵. اگر در حال دور شدن هستند، کاری نکن (حیاتی برای جلوگیری از چسبیدن)
+        if (velAlongNormal < 0) return;
 
-        // ۶. در بیلیارد فرض می‌کنیم جرم توپ‌ها برابر است (Mass1 = Mass2)
-        // پس سرعت‌ها در راستای برخورد کاملاً عوض می‌شوند (Impulse)
-        double impulse = velocityAlongNormal;
+        // ۶. اعمال ضربه (Impulse) - فرض بر جرم مساوی
+        b1.setVx(b1.getVx() - velAlongNormal * nx);
+        b1.setVy(b1.getVy() - velAlongNormal * ny);
+        b2.setVx(b2.getVx() + velAlongNormal * nx);
+        b2.setVy(b2.getVy() + velAlongNormal * ny);
 
-        // ۷. اعمال ضربه به سرعت‌ها
-        b1.setVx(b1.getVx() - impulse * nx);
-        b1.setVy(b1.getVy() - impulse * ny);
-        b2.setVx(b2.getVx() + impulse * nx);
-        b2.setVy(b2.getVy() + impulse * ny);
-
-        // ۸. اصلاح موقعیت (Anti-clumping) برای اینکه در هم گیر نکنند
-        // توپ‌ها را به اندازه هم‌پوشانی از هم دور می‌کنیم
+        // ۷. اصلاح هم‌پوشانی (Overlap Correction) - برای اینکه در هم گیر نکنند
         double overlap = (b1.getRadius() + b2.getRadius()) - distance;
-        double percent = 0.5; // هر توپ نیمی از راه را برگردد
-        double slop = 0.01; // مقدار ناچیز برای جلوگیری از لرزش
+        double percent = 0.5;
+        double slop = 0.01;
         double correctionMagnitude = Math.max(overlap - slop, 0.0) * percent;
 
         double correctionX = correctionMagnitude * nx;
@@ -54,36 +115,5 @@ public class PhysicsEngine {
         b2.setX(b2.getX() + correctionX);
         b2.setY(b2.getY() + correctionY);
     }
-
-    public void updatePhysics(ArrayList<Ball> balls, int width, int height) {
-        double friction = 0.99; // مقدار اصطکاک
-
-        for (Ball b : balls) {
-            // ۱. اعمال اصطکاک
-            b.setVx(b.getVx() * friction);
-            b.setVy(b.getVy() * friction);
-
-            // ۲. توقف سرعت‌های ناچیز
-            if (Math.abs(b.getVx()) < 0.1) b.setVx(0);
-            if (Math.abs(b.getVy()) < 0.1) b.setVy(0);
-
-            // ۳. حرکت
-            b.setX(b.getX() + b.getVx());
-            b.setY(b.getY() + b.getVy());
-
-            // ۴. برخورد با دیوار
-            b.checkWallCollision(width, height);
-        }
-
-        // ۵. برخورد توپ با توپ
-        for (int i = 0; i < balls.size(); i++) {
-            for (int j = i + 1; j < balls.size(); j++) {
-                if (balls.get(i).isCollidingWith(balls.get(j))) {
-                    resolveCollision(balls.get(i), balls.get(j));
-                }
-            }
-        }
-    }
-
 
 }

@@ -44,31 +44,4 @@ public class Ball {
     public void setColor(Color color) { this.color = color; }
 
 
-    public boolean isCollidingWith(Ball other) {
-        double dx = this.x - other.x;
-        double dy = this.y - other.y;
-        double distanceSquared = dx * dx + dy * dy;
-        double radiusSum = this.radius + other.radius;
-        return distanceSquared <= (radiusSum * radiusSum);
-    }
-
-    public void checkWallCollision(double panelWidth, double panelHeight) {
-
-        if (x - radius < 0) {
-            x = radius;
-            vx = -vx;
-        } else if (x + radius > panelWidth) {
-            x = panelWidth - radius;
-            vx = -vx;
-        }
-
-        if (y - radius < 0) {
-            y = radius;
-            vy = -vy;
-        } else if (y + radius > panelHeight) {
-            y = panelHeight - radius;
-            vy = -vy;
-        }
-    }
-
 }
