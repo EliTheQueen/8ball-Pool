@@ -6,13 +6,31 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.RenderingHints;
 import model.Ball;
+import javax.swing.Timer;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 
 public class GamePanel extends JPanel {
     private Ball ball;
+    private Timer timer;
 
     public GamePanel() {
 
         ball = new Ball(100, 100, 20, 1, true);
+
+        ball.setVx(2);
+        ball.setVy(1.5);
+
+        int delayMs = 16;
+        timer = new Timer(delayMs, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ball.move();
+            }
+        });
+
+        timer.start();
     }
 
     @Override
