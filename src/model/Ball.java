@@ -9,13 +9,15 @@ public class Ball {
     private double radius;
     private int number;
     private double vx, vy;
+    private Color color;
 
-    public Ball(double x, double y, double radius, int number, boolean isSolid) {
+    public Ball(double x, double y, double radius, int number, boolean isSolid, Color color) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.number = number;
         this.isSolid = isSolid;
+        this.color = color;
         this.vx = 0;
         this.vy = 0;
     }
@@ -35,10 +37,12 @@ public class Ball {
     public double getRadius() { return radius; }
     public void setRadius(double radius) { this.radius = radius; }
 
-    public void move() {
-        this.x += vx;
-        this.y += vy;
-    }
+    public int getNumber() { return number; }
+    public void setNumber(int number) { this.number = number; }
+
+    public Color getColor() { return color; }
+    public void setColor(Color color) { this.color = color; }
+
 
     public boolean isCollidingWith(Ball other) {
         double dx = this.x - other.x;
@@ -50,12 +54,20 @@ public class Ball {
 
     public void checkWallCollision(double panelWidth, double panelHeight) {
 
-        if (getX() < getRadius() || getX() > panelWidth - getRadius()) {
-            setVx(-getVx());
+        if (x - radius < 0) {
+            x = radius;
+            vx = -vx;
+        } else if (x + radius > panelWidth) {
+            x = panelWidth - radius;
+            vx = -vx;
         }
 
-        if (getY() < getRadius() || getY() > panelHeight - getRadius()) {
-            setVy(-getVy());
+        if (y - radius < 0) {
+            y = radius;
+            vy = -vy;
+        } else if (y + radius > panelHeight) {
+            y = panelHeight - radius;
+            vy = -vy;
         }
     }
 
