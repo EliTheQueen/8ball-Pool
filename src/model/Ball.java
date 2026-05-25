@@ -32,6 +32,9 @@ public class Ball {
     public double getVy() { return vy; }
     public void setVy(double vy) { this.vy = vy; }
 
+    public double getRadius() { return radius; }
+    public void setRadius(double radius) { this.radius = radius; }
+
     public void move() {
         this.x += vx;
         this.y += vy;
@@ -43,6 +46,17 @@ public class Ball {
         double distanceSquared = dx * dx + dy * dy;
         double radiusSum = this.radius + other.radius;
         return distanceSquared <= (radiusSum * radiusSum);
+    }
+
+    public void checkWallCollision(double panelWidth, double panelHeight) {
+
+        if (getX() < getRadius() || getX() > panelWidth - getRadius()) {
+            setVx(-getVx());
+        }
+
+        if (getY() < getRadius() || getY() > panelHeight - getRadius()) {
+            setVy(-getVy());
+        }
     }
 
 }

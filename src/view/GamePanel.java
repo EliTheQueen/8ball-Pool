@@ -19,14 +19,16 @@ public class GamePanel extends JPanel {
 
         ball = new Ball(100, 100, 20, 1, true);
 
-        ball.setVx(2);
-        ball.setVy(1.5);
+        ball.setVx(5);
+        ball.setVy(3);
 
         int delayMs = 16;
         timer = new Timer(delayMs, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 ball.move();
+                ball.checkWallCollision(getWidth(), getHeight());
+                repaint();
             }
         });
 
@@ -40,7 +42,7 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 
-        g2d.setColor(Color.WHITE);
+        g2d.setColor(Color.PINK);
 
        int r = 20;
         g2d.fillOval((int)(ball.getX() - r), (int)(ball.getY() - r), 2 * r, 2 * r);
