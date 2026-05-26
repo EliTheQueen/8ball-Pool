@@ -6,6 +6,8 @@ import java.util.ArrayList;
 public class GameState {
     private ArrayList<Ball> balls;
     private Cue currentCue;
+    private ArrayList<Cue> availableCues = new ArrayList<>();
+    private int currentCueIndex = 0;
 
     public GameState() {
         balls = new ArrayList<>();
@@ -17,8 +19,10 @@ public class GameState {
         balls.add(b1);
         balls.add(b2);
 
-        currentCue = new BasicCue();
+        availableCues.add(new BasicCue());
+        availableCues.add(new PowerCue());
 
+        this.currentCue = availableCues.get(0);
     }
 
     public ArrayList<Ball> getBalls() {
@@ -43,6 +47,12 @@ public class GameState {
             }
         }
         return true;
+    }
+
+    public void nextCue() {
+        currentCueIndex = (currentCueIndex + 1) % availableCues.size();
+        this.currentCue = availableCues.get(currentCueIndex);
+        System.out.println("Cue changed to: " + currentCue.getName());
     }
 
 }

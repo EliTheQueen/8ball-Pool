@@ -70,6 +70,12 @@ public class GamePanel extends JPanel {
             int diameter = (int) (2 * b.getRadius());
 
             g2d.fillOval(drawX, drawY, diameter, diameter);
+
+            g2d.setColor(new Color(0, 0, 0, 150)); // پس‌زمینه مشکی نیمه‌شفاف برای متن
+            g2d.fillRect(10, 50, 150, 25);
+            g2d.setColor(Color.CYAN);
+            g2d.drawString("Active Cue: " + gameState.getCurrentCue().getName(), 15, 67);
+
         }
 
         if (gameState.isEverythingStopped() && cueController.isDragging()) {
