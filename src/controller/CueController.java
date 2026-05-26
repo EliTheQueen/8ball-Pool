@@ -1,6 +1,7 @@
 package controller;
 
 import model.Ball;
+import model.GameState;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -13,22 +14,28 @@ public class CueController extends MouseAdapter {
     private boolean isDragging = false;
     private double power = 0;
     private double angle = 0;
+    GameState gameState;
 
-    public CueController(Ball ball) {
+    public CueController(Ball ball, GameState gameState) {
         this.cueBall = ball;
+        this.gameState = gameState;
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        isDragging = true;
+        if(gameState.isEverythingStopped()) {
+            isDragging = true;
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if(isDragging){
-            hitBall();
-            isDragging = false;
-            power = 0;
+        if(gameState.isEverythingStopped()) {
+            if (isDragging) {
+                hitBall();
+                isDragging = false;
+                power = 0;
+            }
         }
     }
 
@@ -42,29 +49,23 @@ public class CueController extends MouseAdapter {
         double dx = mousePoint.x - cueBall.getX();
         double dy = mousePoint.y - cueBall.getY();
 
-        // محاسبه زاویه بین موس و توپ
         angle = Math.atan2(dy, dx);
 
-        // محاسبه قدرت (فاصله موس تا توپ)
         double distance = Math.sqrt(dx * dx + dy * dy);
-        power = Math.min(distance / 10, 20);
+        power = Math.min(distance / 5, 20);
     }
 
     private void hitBall() {
-        // ضربه در جهت مخالف کشش موس
         double dx = mousePoint.x - cueBall.getX();
         double dy = mousePoint.y - cueBall.getY();
 
-        // محاسبه زاویه ضربه (برعکس جهت کشیدن موس)
         double angle = Math.atan2(dy, dx);
 
-        // اعمال سرعت به توپ سفید
-        // ضربدر یک عدد بزرگتر (مثلا 0.2) کنید تا حرکت به وضوح دیده شود
-        cueBall.setVx(-Math.cos(angle) * power * 0.2);
-        cueBall.setVy(-Math.sin(angle) * power * 0.2);
+        cueBall.setVx(-Math.cos(angle) * power * 0.65);
+        cueBall.setVy(-Math.sin(angle) * power * 0.65);
     }
 
-    // Getter ها برای استفاده در GamePanel (برای رسم چوب)
+
     public double getAngle() { return angle; }
     public double getPower() { return power; }
     public boolean isDragging() { return isDragging; }

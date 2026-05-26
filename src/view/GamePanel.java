@@ -6,11 +6,13 @@ import java.awt.*;
 import controller.CueController;
 import controller.PhysicsEngine;
 import model.Ball;
+import model.Cue;
 import model.GameState;
 
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 
 public class GamePanel extends JPanel {
@@ -19,6 +21,8 @@ public class GamePanel extends JPanel {
     private GameState gameState;
     private PhysicsEngine physicsEngine;
     private CueController cueController;
+    private ArrayList<Cue> cueList;
+    private Cue currentCue;
 
 
     public GamePanel(GameState gameState, PhysicsEngine physicsEngine) {
@@ -30,7 +34,7 @@ public class GamePanel extends JPanel {
 
         Ball whiteBall = gameState.getBalls().get(0);
 
-        this.cueController = new CueController(whiteBall);
+        this.cueController = new CueController(whiteBall, gameState);
 
         // ۳. متصل کردن کنترلر به این پنل (بسیار مهم)
         this.addMouseListener(cueController);
@@ -68,30 +72,20 @@ public class GamePanel extends JPanel {
             g2d.fillOval(drawX, drawY, diameter, diameter);
         }
 
-        drawCue(g2d, gameState.getBalls().get(0), cueController);
+        if (gameState.isEverythingStopped() && cueController.isDragging()) {
+            Ball cueBall = gameState.getBalls().get(0);
 
-    }
+            gameState.getCurrentCue().draw(
+                    g2d,
+                    cueBall.getX(),
+                    cueBall.getY(),
+                    cueController.getAngle(),
+                    cueController.getPower(),
+                    cueBall.getRadius()
+            );
+        }
 
-    private void drawCue(Graphics2D g2, Ball cueBall, CueController controller) {
-        if (!controller.isDragging()) return;
 
-        double angle = controller.getAngle();
-        double power = controller.getPower();
-
-        // شروع چوب با کمی فاصله از توپ
-        double startDist = cueBall.getRadius() + 5 + (power * 2);
-        double cueLength = 150; // طول چوب
-
-        // محاسبه نقاط ابتدا و انتهای چوب با استفاده از سینوس و کسینوس
-        int x1 = (int) (cueBall.getX() + Math.cos(angle) * startDist);
-        int y1 = (int) (cueBall.getY() + Math.sin(angle) * startDist);
-
-        int x2 = (int) (cueBall.getX() + Math.cos(angle) * (startDist + cueLength));
-        int y2 = (int) (cueBall.getY() + Math.sin(angle) * (startDist + cueLength));
-
-        g2.setColor(gameState.getCurrentCue().getColor());
-        g2.setStroke(new BasicStroke(gameState.getCurrentCue().getThickness()));
-        g2.drawLine(x1, y1, x2, y2);
     }
 
 }

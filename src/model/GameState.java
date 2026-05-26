@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class GameState {
     private ArrayList<Ball> balls;
-    private Cue currentCue = new Cue("Classic", new Color(139, 69, 19), 10);
+    private Cue currentCue;
 
     public GameState() {
         balls = new ArrayList<>();
@@ -17,6 +17,8 @@ public class GameState {
         balls.add(b1);
         balls.add(b2);
 
+        currentCue = new BasicCue();
+
     }
 
     public ArrayList<Ball> getBalls() {
@@ -26,4 +28,21 @@ public class GameState {
     public Cue getCurrentCue() {
         return currentCue;
     }
+
+    public void setCurrentCue(Cue currentCue) {
+        this.currentCue = currentCue;
+    }
+
+    public boolean isEverythingStopped() {
+        double stopThreshold = 0.1;
+        for (Ball ball : balls) {
+
+            double speed = Math.sqrt(ball.getVx() * ball.getVx() + ball.getVy() * ball.getVy());
+            if (speed > stopThreshold) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

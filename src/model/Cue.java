@@ -17,4 +17,8 @@ public class Cue {
     public Color getColor() { return color; }
     public int getThickness() { return thickness; }
 
+    public void draw(Graphics2D g2d, double x, double y, double angle, double power, double radius) {
+
+    }
+
 }
