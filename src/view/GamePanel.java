@@ -1,11 +1,9 @@
 package view;
 
 import javax.swing.JPanel;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.RenderingHints;
+import java.awt.*;
 
+import controller.CueController;
 import controller.PhysicsEngine;
 import model.Ball;
 import model.GameState;
@@ -20,12 +18,23 @@ public class GamePanel extends JPanel {
     private Timer timer;
     private GameState gameState;
     private PhysicsEngine physicsEngine;
+    private CueController cueController;
 
 
-    public GamePanel() {
+    public GamePanel(GameState gameState, PhysicsEngine physicsEngine) {
+        this.gameState = gameState;
+        this.physicsEngine = physicsEngine;
 
-        this.gameState = new GameState();
-        this.physicsEngine = new PhysicsEngine();
+        this.gameState = gameState;
+        this.physicsEngine = physicsEngine;
+
+        Ball whiteBall = gameState.getBalls().get(0);
+
+        this.cueController = new CueController(whiteBall);
+
+        // ۳. متصل کردن کنترلر به این پنل (بسیار مهم)
+        this.addMouseListener(cueController);
+        this.addMouseMotionListener(cueController);
 
         int delayMs = 16;
         timer = new Timer(delayMs, new ActionListener() {
@@ -59,5 +68,30 @@ public class GamePanel extends JPanel {
             g2d.fillOval(drawX, drawY, diameter, diameter);
         }
 
+        drawCue(g2d, gameState.getBalls().get(0), cueController);
+
     }
+
+    private void drawCue(Graphics2D g2, Ball cueBall, CueController controller) {
+        if (!controller.isDragging()) return;
+
+        double angle = controller.getAngle();
+        double power = controller.getPower();
+
+        // شروع چوب با کمی فاصله از توپ
+        double startDist = cueBall.getRadius() + 5 + (power * 2);
+        double cueLength = 150; // طول چوب
+
+        // محاسبه نقاط ابتدا و انتهای چوب با استفاده از سینوس و کسینوس
+        int x1 = (int) (cueBall.getX() + Math.cos(angle) * startDist);
+        int y1 = (int) (cueBall.getY() + Math.sin(angle) * startDist);
+
+        int x2 = (int) (cueBall.getX() + Math.cos(angle) * (startDist + cueLength));
+        int y2 = (int) (cueBall.getY() + Math.sin(angle) * (startDist + cueLength));
+
+        g2.setColor(gameState.getCurrentCue().getColor());
+        g2.setStroke(new BasicStroke(gameState.getCurrentCue().getThickness()));
+        g2.drawLine(x1, y1, x2, y2);
+    }
+
 }

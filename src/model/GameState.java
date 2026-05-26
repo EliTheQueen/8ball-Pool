@@ -5,17 +5,14 @@ import java.util.ArrayList;
 
 public class GameState {
     private ArrayList<Ball> balls;
+    private Cue currentCue = new Cue("Classic", new Color(139, 69, 19), 10);
 
     public GameState() {
         balls = new ArrayList<>();
 
-        Ball b1 = new Ball(700, 100, 30, 1, false, Color.PINK);
-        b1.setVx(7);
-        b1.setVy(7);
+        Ball b1 = new Ball(700, 100, 30, 1, true, Color.WHITE);
 
-        Ball b2 = new Ball(600, 100, 30, 2, false, Color.WHITE);
-        b2.setVx(5);
-        b2.setVy(6);
+        Ball b2 = new Ball(600, 100, 30, 2, true, Color.pink);
 
         balls.add(b1);
         balls.add(b2);
@@ -24,5 +21,9 @@ public class GameState {
 
     public ArrayList<Ball> getBalls() {
         return balls;
+    }
+
+    public Cue getCurrentCue() {
+        return currentCue;
     }
 }
