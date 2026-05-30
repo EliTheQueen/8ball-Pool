@@ -3,6 +3,7 @@ package model;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class GameState {
     public enum Spin { NONE, TOP, BACK, LEFT, RIGHT }

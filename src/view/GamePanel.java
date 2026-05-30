@@ -1,110 +1,71 @@
 package view;
 
-import javax.swing.JPanel;
+import controller.*;
+import model.*;
+import javax.swing.*;
 import java.awt.*;
 
-import controller.CueController;
-import controller.PhysicsEngine;
-import model.Ball;
-import model.Cue;
-import model.GameState;
-import model.Table;
-
-import javax.swing.Timer;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-
-
 public class GamePanel extends JPanel {
-
-    private Timer timer;
-    private GameState gameState;
-    private PhysicsEngine physicsEngine;
-    private CueController cueController;
-    private ArrayList<Cue> cueList;
-    private Cue currentCue;
-
+    private final GameState gameState;
+    private final PhysicsEngine physicsEngine;
+    private final CueController cueController;
 
     public GamePanel(GameState gameState, PhysicsEngine physicsEngine) {
-        this.gameState = gameState;
-        this.physicsEngine = physicsEngine;
-
-        this.gameState = gameState;
-        this.physicsEngine = physicsEngine;
-
-        Ball whiteBall = gameState.getBalls().get(0);
-
-        this.cueController = new CueController(whiteBall, gameState);
-
-        // ۳. متصل کردن کنترلر به این پنل (بسیار مهم)
-        this.addMouseListener(cueController);
-        this.addMouseMotionListener(cueController);
-
-        int delayMs = 16;
-        timer = new Timer(delayMs, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                if (getWidth() <= 0) return;
-
-                physicsEngine.updatePhysics(gameState.getBalls(), getWidth(), getHeight());
-                repaint();
-            }
-        });
-
-        timer.start();
+        this.gameState = gameState; this.physicsEngine = physicsEngine;
+        setPreferredSize(new Dimension(Table.WIDTH, Table.HEIGHT + 70));
+        setFocusable(true);
+        cueController = new CueController(gameState);
+        addMouseListener(cueController); addMouseMotionListener(cueController);
+        new Timer(16, e -> { physicsEngine.updatePhysics(gameState); repaint(); }).start();
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
+    @Override protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        setBackground(new Color(20, 100, 20));
-
-        for (Ball b : gameState.getBalls()) {
-            g2d.setColor(b.getColor());
-
-            int drawX = (int) (b.getX() - b.getRadius());
-            int drawY = (int) (b.getY() - b.getRadius());
-            int diameter = (int) (2 * b.getRadius());
-
-            g2d.fillOval(drawX, drawY, diameter, diameter);
-
-            g2d.setColor(new Color(0, 0, 0, 150)); // پس‌زمینه مشکی نیمه‌شفاف برای متن
-            g2d.fillRect(10, 50, 150, 25);
-            g2d.setColor(Color.CYAN);
-            g2d.drawString("Active Cue: " + gameState.getCurrentCue().getName(), 15, 67);
-
-        }
-
-        if (gameState.isEverythingStopped() && cueController.isDragging()) {
-            Ball cueBall = gameState.getBalls().get(0);
-
-            gameState.getCurrentCue().draw(
-                    g2d,
-                    cueBall.getX(),
-                    cueBall.getY(),
-                    cueController.getAngle(),
-                    cueController.getPower(),
-                    cueBall.getRadius()
-            );
-        }
-
-
+        drawTable(g2d); drawBalls(g2d); drawCue(g2d); drawHud(g2d);
     }
 
-}
+    private void drawTable(Graphics2D g) {
+        setBackground(new Color(30, 30, 30));
+        g.setColor(new Color(110, 65, 25)); g.fillRoundRect(10, 10, Table.WIDTH - 20, Table.HEIGHT - 20, 35, 35);
+        Rectangle a = gameState.getTable().playArea();
+        g.setColor(new Color(20, 115, 50)); g.fillRect(a.x, a.y, a.width, a.height);
+        g.setColor(new Color(0,0,0));
+        for (int i = 0; i < gameState.getTable().pockets().size(); i++) {
+            Point p = gameState.getTable().pockets().get(i);
+            if (i == gameState.getSelectedPocket()) { g.setColor(Color.YELLOW); g.fillOval(p.x - 34, p.y - 34, 68, 68); g.setColor(Color.BLACK); }
+            g.fillOval(p.x - Table.POCKET_RADIUS, p.y - Table.POCKET_RADIUS, Table.POCKET_RADIUS*2, Table.POCKET_RADIUS*2);
+        }
+        g.setColor(new Color(255,255,255,90)); g.drawLine(220, a.y, 220, a.y + a.height);
+    }
 
-private void checkPocket(GameState state, Ball b) {
-    for (Point p : state.getTable().pockets()) if (p.distance(b.getX(), b.getY()) < Table.POCKET_RADIUS) { state.potBall(b); return; }
-}
+    private void drawBalls(Graphics2D g) {
+        for (Ball b : gameState.getBalls()) {
+            if (b.isPotted()) continue;
+            int x = (int)(b.getX() - b.getRadius()), y = (int)(b.getY() - b.getRadius()), d = (int)(2*b.getRadius());
+            g.setColor(new Color(0,0,0,70)); g.fillOval(x+3, y+4, d, d);
+            g.setColor(b.getColor()); g.fillOval(x, y, d, d);
+            g.setColor(Color.BLACK); g.drawOval(x, y, d, d);
+            if (b.getGroup() == Ball.Group.STRIPE) { g.setColor(Color.WHITE); g.fillRect(x+3, y+d/3, d-6, d/3); g.setColor(b.getColor()); g.drawRect(x+3, y+d/3, d-6, d/3); }
+            if (b.getNumber() > 0) { g.setColor(Color.WHITE); g.fillOval((int)b.getX()-7,(int)b.getY()-7,14,14); g.setColor(Color.BLACK); g.setFont(new Font("Arial", Font.BOLD, 10)); g.drawString(String.valueOf(b.getNumber()), (int)b.getX()-4, (int)b.getY()+4); }
+        }
+    }
 
-private void checkWallCollision(Ball b, Rectangle a) {
-    double r = b.getRadius();
-    if (b.getX() - r < a.x) { b.setX(a.x + r); b.setVx(-b.getVx() * RESTITUTION); }
-    if (b.getX() + r > a.x + a.width) { b.setX(a.x + a.width - r); b.setVx(-b.getVx() * RESTITUTION); }
-    if (b.getY() - r < a.y) { b.setY(a.y + r); b.setVy(-b.getVy() * RESTITUTION); }
-    if (b.getY() + r > a.y + a.height) { b.setY(a.y + a.height - r); b.setVy(-b.getVy() * RESTITUTION); }
+    private void drawCue(Graphics2D g) {
+        if (gameState.isEverythingStopped() && cueController.isDragging()) {
+            Ball cue = gameState.getCueBall();
+            gameState.getCurrentCue().draw(g, cue.getX(), cue.getY(), cueController.getAngle(), cueController.getPower(), cue.getRadius());
+        }
+    }
+
+    private void drawHud(Graphics2D g) {
+        int y = Table.HEIGHT + 8;
+        g.setColor(new Color(20,20,20)); g.fillRect(0, Table.HEIGHT, getWidth(), 70);
+        g.setColor(Color.WHITE); g.setFont(new Font("Arial", Font.BOLD, 14));
+        Player p1 = gameState.getPlayers()[0], p2 = gameState.getPlayers()[1];
+        g.drawString("Turn: " + gameState.getCurrentPlayer().getName() + " | Cue: " + gameState.getCurrentCue().getName() + " | Spin: " + gameState.getSpin(), 20, y + 18);
+        g.drawString(p1.getName()+" ["+p1.groupText()+"] score: "+p1.getScore()+"     "+p2.getName()+" ["+p2.groupText()+"] score: "+p2.getScore(), 20, y + 38);
+        g.setColor(gameState.isGameOver() ? Color.ORANGE : Color.CYAN); g.drawString(gameState.getMessage(), 20, y + 58);
+    }
 }
