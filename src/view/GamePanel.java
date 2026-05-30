@@ -8,6 +8,7 @@ import controller.PhysicsEngine;
 import model.Ball;
 import model.Cue;
 import model.GameState;
+import model.Table;
 
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
@@ -94,4 +95,8 @@ public class GamePanel extends JPanel {
 
     }
 
+}
+
+private void checkPocket(GameState state, Ball b) {
+    for (Point p : state.getTable().pockets()) if (p.distance(b.getX(), b.getY()) < Table.POCKET_RADIUS) { state.potBall(b); return; }
 }
