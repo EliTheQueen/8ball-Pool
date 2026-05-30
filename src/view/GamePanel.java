@@ -100,3 +100,11 @@ public class GamePanel extends JPanel {
 private void checkPocket(GameState state, Ball b) {
     for (Point p : state.getTable().pockets()) if (p.distance(b.getX(), b.getY()) < Table.POCKET_RADIUS) { state.potBall(b); return; }
 }
+
+private void checkWallCollision(Ball b, Rectangle a) {
+    double r = b.getRadius();
+    if (b.getX() - r < a.x) { b.setX(a.x + r); b.setVx(-b.getVx() * RESTITUTION); }
+    if (b.getX() + r > a.x + a.width) { b.setX(a.x + a.width - r); b.setVx(-b.getVx() * RESTITUTION); }
+    if (b.getY() - r < a.y) { b.setY(a.y + r); b.setVy(-b.getVy() * RESTITUTION); }
+    if (b.getY() + r > a.y + a.height) { b.setY(a.y + a.height - r); b.setVy(-b.getVy() * RESTITUTION); }
+}
