@@ -174,6 +174,15 @@ public class GameState {
             return firstHit.getGroup() == Ball.Group.CUE;
         }
 
+        if (firstHit.getGroup() == Ball.Group.EIGHT) {
+
+            if (player.getGroup() != null &&
+                    remainingOfGroup(player.getGroup()) > 0) {
+
+                return true;
+            }
+        }
+
         if (player.getGroup() == Ball.Group.SOLID) {
             return firstHit.getGroup() != Ball.Group.SOLID;
         }
