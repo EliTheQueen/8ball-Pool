@@ -14,7 +14,6 @@ public class Ball {
     private final Group group;
     private boolean potted;
 
-
     public Ball(double x, double y, double radius, int number, Group group, Color color) {
         this.x = x;
         this.y = y;
@@ -46,6 +45,7 @@ public class Ball {
     public void setPotted(boolean potted) { this.potted = potted; }
     public boolean isMoving() { return Math.hypot(vx, vy) > 0.15; }
     public void stop() { vx = 0; vy = 0; }
+
 
 
 }

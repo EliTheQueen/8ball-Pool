@@ -86,6 +86,7 @@ public class GameState {
     private void assignGroups(Ball.Group firstGroup) {
         players[currentPlayer].setGroup(firstGroup);
         players[1 - currentPlayer].setGroup(firstGroup == Ball.Group.SOLID ? Ball.Group.STRIPE : Ball.Group.SOLID);
+        openTable = false;
     }
 
     private void handleEightBall(Ball eight) {
