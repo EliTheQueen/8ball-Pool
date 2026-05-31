@@ -18,6 +18,7 @@ public class GameState {
     private boolean shotInProgress = false, foul = false, ballInHand = false, gameOver = false;
     private String message = "Select a pocket, then drag from the white ball.";
     private final ArrayList<Ball> pottedThisShot = new ArrayList<>();
+    private boolean openTable = true;
 
     public GameState() {
         availableCues.add(new BasicCue()); availableCues.add(new PowerCue());
@@ -130,5 +131,13 @@ public class GameState {
     }
     public static String loadRecords() {
         try { return new String(java.nio.file.Files.readAllBytes(new File("records.txt").toPath())); } catch (IOException e) { return "No records yet."; }
+    }
+
+    public boolean isOpenTable() {
+        return openTable;
+    }
+
+    public void setOpenTable(boolean openTable) {
+        this.openTable = openTable;
     }
 }
