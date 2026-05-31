@@ -103,6 +103,7 @@ public class GameState {
     private void handleEightBall(Ball eight) {
         Player p = players[currentPlayer];
         boolean allDone = remainingOfGroup(p.getGroup()) == 0;
+        // TODO: verify eight ball entered selected pocket
         if (allDone && selectedPocket >= 0) { gameOver = true; message = p.getName() + " wins!"; saveRecord(p.getName() + " won"); }
         else { gameOver = true; message = p.getName() + " loses by potting 8 early!"; saveRecord(players[1-currentPlayer].getName() + " won"); }
     }
