@@ -48,12 +48,22 @@ public class PhysicsEngine {
         for (int i = 0; i < balls.size(); i++) for (int j = i + 1; j < balls.size(); j++) {
             Ball b1 = balls.get(i), b2 = balls.get(j);
             if (!b1.isPotted() && !b2.isPotted()) {
-                if (b1.getGroup() == Ball.Group.CUE && b2.getGroup() != Ball.Group.CUE) {
-                    gameState.getShotResult().setFirstHitBall(b2);
-                } else if (b2.getGroup() == Ball.Group.CUE && b1.getGroup() != Ball.Group.CUE) {
-                    gameState.getShotResult().setFirstHitBall(b1);
+
+                if (isColliding(b1, b2)) {
+
+                    if (b1.getGroup() == Ball.Group.CUE &&
+                            b2.getGroup() != Ball.Group.CUE) {
+
+                        gameState.getShotResult().setFirstHitBall(b2);
+
+                    } else if (b2.getGroup() == Ball.Group.CUE &&
+                            b1.getGroup() != Ball.Group.CUE) {
+
+                        gameState.getShotResult().setFirstHitBall(b1);
+                    }
+
+                    resolveCollision(b1, b2, state);
                 }
-                resolveCollision(b1, b2, state);
             }
         }
     }
@@ -83,5 +93,14 @@ public class PhysicsEngine {
             case LEFT -> { cue.setVx(cue.getVx() - ny * s); cue.setVy(cue.getVy() + nx * s); }
             case RIGHT -> { cue.setVx(cue.getVx() + ny * s); cue.setVy(cue.getVy() - nx * s); }
         }
+    }
+
+    private boolean isColliding(Ball b1, Ball b2) {
+        double dx = b2.getX() - b1.getX();
+        double dy = b2.getY() - b1.getY();
+
+        double distance = Math.hypot(dx, dy);
+
+        return distance <= b1.getRadius() + b2.getRadius();
     }
 }
