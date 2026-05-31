@@ -24,7 +24,7 @@ public class GameWindow extends JFrame {
 
     private JPanel createGameScreen() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new GamePanel(gameState, new PhysicsEngine()), BorderLayout.CENTER);
+        panel.add(new GamePanel(gameState, new PhysicsEngine(gameState)), BorderLayout.CENTER);
         JPanel buttons = new JPanel();
         JButton menu = new JButton("Menu"); menu.addActionListener(e -> showMenu());
         JButton restart = new JButton("Restart"); restart.addActionListener(e -> gameState.resetGame());

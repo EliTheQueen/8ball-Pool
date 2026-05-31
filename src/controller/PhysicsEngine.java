@@ -8,6 +8,11 @@ public class PhysicsEngine {
     private static final double FRICTION = 0.992;
     private static final double STOP_THRESHOLD = 0.08;
     private static final double RESTITUTION = 0.96;
+    private GameState gameState;
+
+    public PhysicsEngine(GameState gameState) {
+        this.gameState = gameState;
+    }
 
     public void updatePhysics(GameState state) {
         Rectangle area = state.getTable().playArea();
@@ -42,7 +47,14 @@ public class PhysicsEngine {
     private void handleBallCollisions(ArrayList<Ball> balls, GameState state) {
         for (int i = 0; i < balls.size(); i++) for (int j = i + 1; j < balls.size(); j++) {
             Ball b1 = balls.get(i), b2 = balls.get(j);
-            if (!b1.isPotted() && !b2.isPotted()) resolveCollision(b1, b2, state);
+            if (!b1.isPotted() && !b2.isPotted()) {
+                if (b1.getGroup() == Ball.Group.CUE && b2.getGroup() != Ball.Group.CUE) {
+                    gameState.getShotResult().setFirstHitBall(b2);
+                } else if (b2.getGroup() == Ball.Group.CUE && b1.getGroup() != Ball.Group.CUE) {
+                    gameState.getShotResult().setFirstHitBall(b1);
+                }
+                resolveCollision(b1, b2, state);
+            }
         }
     }
 

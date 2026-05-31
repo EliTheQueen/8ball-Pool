@@ -1,5 +1,7 @@
 package main;
 
+import controller.PhysicsEngine;
+import model.GameState;
 import view.GameWindow;
 import javax.swing.*;
 

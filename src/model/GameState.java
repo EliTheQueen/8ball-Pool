@@ -33,6 +33,7 @@ public class GameState {
         shotInProgress = foul = ballInHand = gameOver = false;
         message = players[currentPlayer].getName() + " starts. Select a pocket.";
         createBalls();
+        setOpenTable(true);
     }
 
     private void createBalls() {
