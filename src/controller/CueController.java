@@ -16,8 +16,15 @@ public class CueController extends MouseAdapter {
         if (gameState.isGameOver()) return;
         if (gameState.isBallInHand()) {
             Rectangle a = gameState.getTable().playArea();
-            if (a.contains(e.getPoint())) { gameState.getCueBall().setX(e.getX()); gameState.getCueBall().setY(e.getY()); gameState.clearBallInHand(); }
-            return;
+            Ball cue = gameState.getCueBall();
+            double x = e.getX();
+            double y = e.getY();
+
+            if (a.contains(e.getPoint()) && x <= 220) {
+                cue.setX(x);
+                cue.setY(y);
+                gameState.clearBallInHand();
+            }            return;
         }
         int pocket = gameState.getTable().pocketAt(e.getPoint());
         if (pocket >= 0) { gameState.setSelectedPocket(pocket); return; }
