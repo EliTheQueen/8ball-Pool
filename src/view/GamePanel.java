@@ -56,6 +56,7 @@ public class GamePanel extends JPanel {
         if (gameState.isEverythingStopped() && cueController.isDragging()) {
             Ball cue = gameState.getCueBall();
             gameState.getCurrentCue().draw(g, cue.getX(), cue.getY(), cueController.getAngle(), cueController.getPower(), cue.getRadius());
+
         }
     }
 

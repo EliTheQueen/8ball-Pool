@@ -76,6 +76,10 @@ public class GameState {
     private void applyShotRules() {
         Player p = players[currentPlayer];
         boolean pottedOwn = false;
+
+        if (isWrongFirstContact()) {
+            foul = true;
+        }
         for (Ball b : pottedThisShot) {
             if (b.getGroup() == Ball.Group.CUE) foul = true;
             else if (b.getGroup() == Ball.Group.EIGHT) handleEightBall(b);
@@ -151,5 +155,33 @@ public class GameState {
 
     public ShotResult getShotResult() {
         return shotResult;
+    }
+
+    private boolean isWrongFirstContact() {
+        Ball firstHit = shotResult.getFirstHitBall();
+
+        if (firstHit == null) {
+            return true;
+        }
+
+        Player player = getCurrentPlayer();
+
+        if (player.getGroup() == null) {
+            return false;
+        }
+
+        if (openTable) {
+            return firstHit.getGroup() == Ball.Group.CUE;
+        }
+
+        if (player.getGroup() == Ball.Group.SOLID) {
+            return firstHit.getGroup() != Ball.Group.SOLID;
+        }
+
+        if (player.getGroup() == Ball.Group.STRIPE) {
+            return firstHit.getGroup() != Ball.Group.STRIPE;
+        }
+
+        return false;
     }
 }
