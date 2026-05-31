@@ -3,7 +3,6 @@ package model;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 public class GameState {
     public enum Spin { NONE, TOP, BACK, LEFT, RIGHT }
@@ -19,6 +18,7 @@ public class GameState {
     private String message = "Select a pocket, then drag from the white ball.";
     private final ArrayList<Ball> pottedThisShot = new ArrayList<>();
     private boolean openTable = true;
+    private final ShotResult shotResult = new ShotResult();
 
     public GameState() {
         availableCues.add(new BasicCue()); availableCues.add(new PowerCue());
@@ -57,7 +57,13 @@ public class GameState {
         return c[n];
     }
 
-    public void startShot() { shotInProgress = true; foul = false; pottedThisShot.clear(); message = "Balls moving..."; }
+    public void startShot() {
+        shotInProgress = true;
+        foul = false;
+        pottedThisShot.clear();
+        message = "Balls moving...";
+        shotResult.reset();
+    }
 
     public void finishShotIfStopped() {
         if (!shotInProgress || !isEverythingStopped()) return;
@@ -86,7 +92,7 @@ public class GameState {
     private void assignGroups(Ball.Group firstGroup) {
         players[currentPlayer].setGroup(firstGroup);
         players[1 - currentPlayer].setGroup(firstGroup == Ball.Group.SOLID ? Ball.Group.STRIPE : Ball.Group.SOLID);
-        openTable = false;
+        setOpenTable(false);
     }
 
     private void handleEightBall(Ball eight) {
@@ -140,5 +146,9 @@ public class GameState {
 
     public void setOpenTable(boolean openTable) {
         this.openTable = openTable;
+    }
+
+    public ShotResult getShotResult() {
+        return shotResult;
     }
 }
