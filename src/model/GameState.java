@@ -116,7 +116,7 @@ public class GameState {
         return count;
     }
 
-    public void potBall(Ball b) {
+    public void potBall(Ball b, int pocketIndex) {
         if (b.isPotted()) return;
         b.setPotted(true); b.stop(); pottedThisShot.add(b);
         if (b.getGroup() == Ball.Group.CUE) { b.setX(220); b.setY(Table.HEIGHT / 2.0); b.setPotted(false); ballInHand = true; foul = true; }
