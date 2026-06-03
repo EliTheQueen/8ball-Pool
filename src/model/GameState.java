@@ -15,26 +15,36 @@ public class GameState {
     private int currentCueIndex = 0, currentPlayer = 0, selectedPocket = -1;
     private Spin spin = Spin.NONE;
     private boolean shotInProgress = false, foul = false, ballInHand = false, gameOver = false, breakShot = true;
+    private long ballInHandNoticeUntil = 0L;
     private String message = "Select a pocket, then drag from the white ball.";
+    private static final int SHOT_SECONDS = 35;
+    private long turnDeadlineMillis = System.currentTimeMillis() + SHOT_SECONDS * 1000L;
     private final ArrayList<Ball> pottedThisShot = new ArrayList<>();
+    private final HashMap<Ball, Integer> pocketByBall = new HashMap<>();
     private boolean openTable = true;
     private final ShotResult shotResult = new ShotResult();
 
     public GameState() {
-        availableCues.add(new BasicCue()); availableCues.add(new PowerCue());
+        availableCues.add(new BasicCue());
+        availableCues.add(new PowerCue());
         currentCue = availableCues.get(0);
         resetGame();
     }
 
     public void resetGame() {
-        balls.clear(); pottedThisShot.clear();
+        balls.clear();
+        pottedThisShot.clear();
+        pocketByBall.clear();
         for (Player p : players) p.reset();
-        currentPlayer = new Random().nextInt(2); selectedPocket = -1; spin = Spin.NONE;
+        currentPlayer = new Random().nextInt(2);
+        selectedPocket = -1;
+        spin = Spin.NONE;
         shotInProgress = foul = ballInHand = gameOver = false;
         breakShot = true;
-        message = players[currentPlayer].getName() + " starts. Select a pocket.";
+        message = players[currentPlayer].getName() + " starts. Break shot: aim and shoot without selecting a pocket.";
         createBalls();
         setOpenTable(true);
+        getShotResult();
     }
 
     private void createBalls() {
@@ -52,7 +62,11 @@ public class GameState {
         }
     }
 
-    private Ball.Group groupFor(int n) { if (n == 8) return Ball.Group.EIGHT; return n < 8 ? Ball.Group.SOLID : Ball.Group.STRIPE; }
+    private Ball.Group groupFor(int n) {
+        if (n == 8) return Ball.Group.EIGHT; return
+        n < 8 ? Ball.Group.SOLID : Ball.Group.STRIPE;
+    }
+
     private Color colorFor(int n) {
         Color[] c = {Color.WHITE, Color.YELLOW, Color.BLUE, Color.RED, new Color(90,0,120), Color.ORANGE, Color.GREEN, new Color(120,20,20), Color.BLACK,
                 Color.YELLOW, Color.BLUE, Color.RED, new Color(90,0,120), Color.ORANGE, Color.GREEN, new Color(120,20,20)};
@@ -63,12 +77,22 @@ public class GameState {
         shotInProgress = true;
         foul = false;
         pottedThisShot.clear();
+        pocketByBall.clear();
         message = "Balls moving...";
         breakShot = false;
         shotResult.reset();
     }
 
     public void finishShotIfStopped() {
+        if (!shotInProgress && !gameOver && !ballInHand && isEverythingStopped() && getRemainingShotSeconds() <= 0) {
+            foul = true;
+            setBallInHand(true);
+            switchTurn();
+            selectedPocket = -1;
+            message = "Time foul! " + players[currentPlayer].getName() + " has ball in hand.";
+            resetShotTimer();
+            return;
+        }
         if (!shotInProgress || !isEverythingStopped()) return;
         shotInProgress = false;
         applyShotRules();
@@ -78,6 +102,7 @@ public class GameState {
     private void applyShotRules() {
         Player p = players[currentPlayer];
         boolean pottedOwn = false;
+        boolean legalBallPotted = false;
 
         if (isWrongFirstContact()) {
             foul = true;
@@ -86,14 +111,29 @@ public class GameState {
             if (b.getGroup() == Ball.Group.CUE) foul = true;
             else if (b.getGroup() == Ball.Group.EIGHT) handleEightBall(b);
             else {
+                legalBallPotted = true;
                 if (players[0].getGroup() == null && players[1].getGroup() == null) assignGroups(b.getGroup());
-                if (b.getGroup() == p.getGroup()) { p.addScore(); pottedOwn = true; }
+                if (b.getGroup() == p.getGroup()) {
+                    p.addScore();
+                    pottedOwn = true;
+                }
             }
         }
+        if (!foul && !legalBallPotted && !shotResult.isRailHit()) {
+            foul = true;
+        }
         if (gameOver) return;
-        if (foul) { ballInHand = true; switchTurn(); message = "FOUL! " + players[currentPlayer].getName() + " has ball in hand."; }
-        else if (!pottedOwn) { switchTurn(); message = players[currentPlayer].getName() + " turn. Select a pocket."; }
-        else message = p.getName() + " continues. Select a pocket.";
+        if (foul) {
+            setBallInHand(true);
+            switchTurn();
+            controller.SoundManager.playFoul();
+            controller.SoundManager.playBallInHand();
+            message = "FOUL! " + players[currentPlayer].getName() + " has ball in hand.";
+        } else if (!pottedOwn) {
+            switchTurn();
+            message = players[currentPlayer].getName() + " turn. Select a pocket.";
+        } else message = p.getName() + " continues. Select a pocket.";
+        resetShotTimer();
     }
 
     private void assignGroups(Ball.Group firstGroup) {
@@ -105,9 +145,12 @@ public class GameState {
     private void handleEightBall(Ball eight) {
         Player p = players[currentPlayer];
         boolean allDone = remainingOfGroup(p.getGroup()) == 0;
-        // TODO: verify eight ball entered selected pocket
-        if (allDone && selectedPocket >= 0) { gameOver = true; message = p.getName() + " wins!"; saveRecord(p.getName() + " won"); }
-        else { gameOver = true; message = p.getName() + " loses by potting 8 early!"; saveRecord(players[1-currentPlayer].getName() + " won"); }
+        Integer actualPocket = pocketByBall.get(eight);
+        if (allDone && selectedPocket >= 0 && actualPocket != null && actualPocket == selectedPocket) {
+            gameOver = true; message = p.getName() + " wins!"; controller.SoundManager.playGameOver(true); saveRecord(p.getName() + " won");
+        } else {
+            gameOver = true; message = p.getName() + " loses on the 8-ball!"; controller.SoundManager.playGameOver(false); saveRecord(players[1-currentPlayer].getName() + " won");
+        }
     }
 
     public int remainingOfGroup(Ball.Group group) {
@@ -118,8 +161,19 @@ public class GameState {
 
     public void potBall(Ball b, int pocketIndex) {
         if (b.isPotted()) return;
-        b.setPotted(true); b.stop(); pottedThisShot.add(b);
-        if (b.getGroup() == Ball.Group.CUE) { b.setX(220); b.setY(Table.HEIGHT / 2.0); b.setPotted(false); ballInHand = true; foul = true; }
+        b.beginPocketAnimation();
+        b.setPotted(true);
+        b.stop();
+        pottedThisShot.add(b);
+        pocketByBall.put(b, pocketIndex);
+        if (b.getGroup() == Ball.Group.CUE) {
+            controller.SoundManager.playBallInHand();
+            b.setX(220);
+            b.setY(Table.HEIGHT / 2.0);
+            b.setPotted(false);
+            setBallInHand(true);
+            foul = true;
+        }
     }
 
     public void switchTurn() { currentPlayer = 1 - currentPlayer; }
@@ -139,6 +193,11 @@ public class GameState {
     public String getMessage() { return message; }
     public void setPlayerNames(String a, String b) { players[0].setName(a.isBlank()?"Player 1":a); players[1].setName(b.isBlank()?"Player 2":b); }
     public void clearBallInHand() { ballInHand = false; }
+    private void setBallInHand(boolean value) {
+        ballInHand = value;
+        if (value) ballInHandNoticeUntil = System.currentTimeMillis() + 1500L;
+    }
+    public boolean shouldShowBallInHandNotice() { return System.currentTimeMillis() < ballInHandNoticeUntil; }
     public void nextCue() { currentCueIndex = (currentCueIndex + 1) % availableCues.size(); currentCue = availableCues.get(currentCueIndex); }
 
     private void saveRecord(String text) {
@@ -160,42 +219,44 @@ public class GameState {
         return shotResult;
     }
 
+    public int getRemainingShotSeconds() {
+        if (shotInProgress || gameOver) return SHOT_SECONDS;
+        long remaining = (turnDeadlineMillis - System.currentTimeMillis() + 999) / 1000;
+        return (int) Math.max(0, remaining);
+    }
+
+    public void resetShotTimer() {
+        turnDeadlineMillis = System.currentTimeMillis() + SHOT_SECONDS * 1000L;
+    }
+
     public boolean isBreakShot() { return breakShot; }
 
     private boolean isWrongFirstContact() {
         Ball firstHit = shotResult.getFirstHitBall();
+        Player player = getCurrentPlayer();
+        Ball.Group group = player.getGroup();
 
         if (firstHit == null) {
             return true;
         }
 
-        Player player = getCurrentPlayer();
-
-        if (player.getGroup() == null) {
-            return false;
+        if (openTable || group == null) {
+            return firstHit.getGroup() == Ball.Group.EIGHT || firstHit.getGroup() == Ball.Group.CUE;
         }
 
-        if (openTable) {
-            return firstHit.getGroup() == Ball.Group.CUE;
+        if (firstHit.getGroup() == Ball.Group.EIGHT && remainingOfGroup(group) > 0) {
+            return true;
         }
 
-        if (firstHit.getGroup() == Ball.Group.EIGHT) {
-
-            if (player.getGroup() != null &&
-                    remainingOfGroup(player.getGroup()) > 0) {
-
-                return true;
-            }
+        if (remainingOfGroup(group) > 0 && firstHit.getGroup() != group) {
+            return true;
         }
 
-        if (player.getGroup() == Ball.Group.SOLID) {
-            return firstHit.getGroup() != Ball.Group.SOLID;
+        if (remainingOfGroup(group) > 0 && !shotResult.hasCueContactWith(group)) {
+            return true;
         }
 
-        if (player.getGroup() == Ball.Group.STRIPE) {
-            return firstHit.getGroup() != Ball.Group.STRIPE;
-        }
+        return remainingOfGroup(group) == 0 && firstHit.getGroup() != Ball.Group.EIGHT;
 
-        return false;
     }
 }
