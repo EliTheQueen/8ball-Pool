@@ -1,6 +1,7 @@
 package controller;
 
 import model.*;
+import  view.GamePanel;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -12,36 +13,74 @@ public class CueController extends MouseAdapter {
 
     public CueController(GameState gameState) { this.gameState = gameState; }
 
+    private Point toTablePoint(MouseEvent e) {
+        if (e.getComponent() instanceof GamePanel panel) {
+            return new Point(e.getX() - panel.getTableOffsetX(), e.getY() - panel.getTableOffsetY());
+        }
+        return e.getPoint();
+    }
+
     @Override public void mousePressed(MouseEvent e) {
         if (gameState.isGameOver()) return;
+        Point tablePoint = toTablePoint(e);
         if (gameState.isBallInHand()) {
             Rectangle a = gameState.getTable().playArea();
             Ball cue = gameState.getCueBall();
-            double x = e.getX();
-            double y = e.getY();
+            double x = tablePoint.getX();
+            double y = tablePoint.getY();
+            double r = cue.getRadius();
+            x = Math.max(a.x + r, Math.min(220, x));
+            y = Math.max(a.y + r, Math.min(a.y + a.height - r, y));
 
-            if (a.contains(e.getPoint()) && x <= 220) {
+            if (a.contains(tablePoint) && tablePoint.x <= 220) {
                 cue.setX(x);
                 cue.setY(y);
                 gameState.clearBallInHand();
-            }            return;
+            }
+            return;
         }
-        int pocket = gameState.getTable().pocketAt(e.getPoint());
-        if (pocket >= 0) { gameState.setSelectedPocket(pocket); return; }
-        if (gameState.getSelectedPocket() >= 0 && gameState.isEverythingStopped()) { mousePoint = e.getPoint(); calculateAngleAndPower(); isDragging = true; }
+        int pocket = gameState.getTable().pocketAt(toTablePoint(e));
+        if (pocket >= 0) {
+            gameState.setSelectedPocket(pocket);
+            return;
+        }
+
+        boolean pocketReady = gameState.isBreakShot() || gameState.getSelectedPocket() >= 0;
+        if (pocketReady && gameState.isEverythingStopped()) {
+            mousePoint = tablePoint;
+            calculateAngleAndPower();
+            isDragging = true;
+        }
     }
-    @Override public void mouseReleased(MouseEvent e) { if (isDragging) { mousePoint = e.getPoint(); calculateAngleAndPower(); hitBall(); isDragging = false; power = 0; } }
-    @Override public void mouseDragged(MouseEvent e) { if (isDragging) { mousePoint = e.getPoint(); calculateAngleAndPower(); } }
+    @Override public void mouseReleased(MouseEvent e) {
+        if (isDragging) {
+            mousePoint = toTablePoint(e);
+            calculateAngleAndPower();
+            hitBall();
+            isDragging = false;
+            power = 0;
+        }
+    }
+
+    @Override public void mouseDragged(MouseEvent e) {
+        if (isDragging) {
+            mousePoint = toTablePoint(e);
+            calculateAngleAndPower();
+        }
+    }
 
     private void calculateAngleAndPower() {
         Ball cueBall = gameState.getCueBall();
         double dx = mousePoint.x - cueBall.getX(), dy = mousePoint.y - cueBall.getY();
-        angle = Math.atan2(dy, dx); power = Math.min(Math.hypot(dx, dy) / 7.0, 24);
+        angle = Math.atan2(dy, dx);
+        power = Math.min(Math.hypot(dx, dy) / 7.0, 42);
     }
+
     private void hitBall() {
         if (power < 1) return;
         Ball cueBall = gameState.getCueBall();
-        cueBall.setVx(-Math.cos(angle) * power * 0.55); cueBall.setVy(-Math.sin(angle) * power * 0.55);
+        cueBall.setVx(-Math.cos(angle) * power * 0.72);
+        cueBall.setVy(-Math.sin(angle) * power * 0.72);
         gameState.startShot();
     }
     public double getAngle() { return angle; }

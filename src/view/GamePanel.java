@@ -9,6 +9,8 @@ public class GamePanel extends JPanel {
     private final GameState gameState;
     private final PhysicsEngine physicsEngine;
     private final CueController cueController;
+    private int tableOffsetX = 0;
+    private int tableOffsetY = 0;
 
     public GamePanel(GameState gameState, PhysicsEngine physicsEngine) {
         this.gameState = gameState; this.physicsEngine = physicsEngine;
@@ -25,6 +27,9 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         drawTable(g2d); drawBalls(g2d); drawCue(g2d); drawHud(g2d);
     }
+
+    public int getTableOffsetX() { return tableOffsetX; }
+    public int getTableOffsetY() { return tableOffsetY; }
 
     private void drawTable(Graphics2D g) {
         setBackground(new Color(30, 30, 30));

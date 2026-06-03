@@ -14,7 +14,7 @@ public class GameState {
     private Cue currentCue;
     private int currentCueIndex = 0, currentPlayer = 0, selectedPocket = -1;
     private Spin spin = Spin.NONE;
-    private boolean shotInProgress = false, foul = false, ballInHand = false, gameOver = false;
+    private boolean shotInProgress = false, foul = false, ballInHand = false, gameOver = false, breakShot = true;
     private String message = "Select a pocket, then drag from the white ball.";
     private final ArrayList<Ball> pottedThisShot = new ArrayList<>();
     private boolean openTable = true;
@@ -31,6 +31,7 @@ public class GameState {
         for (Player p : players) p.reset();
         currentPlayer = new Random().nextInt(2); selectedPocket = -1; spin = Spin.NONE;
         shotInProgress = foul = ballInHand = gameOver = false;
+        breakShot = true;
         message = players[currentPlayer].getName() + " starts. Select a pocket.";
         createBalls();
         setOpenTable(true);
@@ -63,6 +64,7 @@ public class GameState {
         foul = false;
         pottedThisShot.clear();
         message = "Balls moving...";
+        breakShot = false;
         shotResult.reset();
     }
 
@@ -157,6 +159,8 @@ public class GameState {
     public ShotResult getShotResult() {
         return shotResult;
     }
+
+    public boolean isBreakShot() { return breakShot; }
 
     private boolean isWrongFirstContact() {
         Ball firstHit = shotResult.getFirstHitBall();
