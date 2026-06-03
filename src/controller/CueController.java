@@ -81,6 +81,7 @@ public class CueController extends MouseAdapter {
         Ball cueBall = gameState.getCueBall();
         cueBall.setVx(-Math.cos(angle) * power * 0.72);
         cueBall.setVy(-Math.sin(angle) * power * 0.72);
+        SoundManager.playCueStrike(power);
         gameState.startShot();
     }
     public double getAngle() { return angle; }
