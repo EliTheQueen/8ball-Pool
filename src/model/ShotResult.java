@@ -19,17 +19,10 @@ public class ShotResult {
         cueContactGroups.add(ball.getGroup());
     }
 
-    public void setFirstHitBall(Ball firstHitBall) {
-        registerCueContact(firstHitBall);
-    }
-
     public boolean hasCueContactWith(Ball.Group group) {
         return group != null && cueContactGroups.contains(group);
     }
 
-    public boolean hasAnyCueContact() {
-        return firstHitBall != null;
-    }
 
     public boolean isRailHit() {
         return railHit;
