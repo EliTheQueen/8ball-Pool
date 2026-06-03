@@ -71,6 +71,13 @@ public class Theme {
         return textField;
     }
 
+    public static Border cardBorder() {
+        return BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(176, 141, 87, 155), 1, true),
+                BorderFactory.createEmptyBorder(24, 28, 24, 28)
+        );
+    }
+
     public static void paintGradient(Graphics2D g, int width,   int height) {
         Paint old = g.getPaint();
         g.setPaint(new LinearGradientPaint(0, 0, width, height,

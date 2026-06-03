@@ -6,14 +6,53 @@ import java.awt.*;
 
 public class SettingsPanel extends JPanel {
     public SettingsPanel(GameState gameState, GameWindow window) {
-        setLayout(new GridBagLayout()); setBackground(new Color(45,45,45));
-        JPanel box = new JPanel(); box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS)); box.setBorder(BorderFactory.createEmptyBorder(25,25,25,25));
-        JTextField p1 = new JTextField("Player 1", 15), p2 = new JTextField("Player 2", 15);
-        JLabel title = new JLabel("Settings"); title.setFont(new Font("Arial", Font.BOLD, 28)); title.setAlignmentX(CENTER_ALIGNMENT);
-        JButton save = new JButton("Save"); save.setAlignmentX(CENTER_ALIGNMENT); save.addActionListener(e -> { gameState.setPlayerNames(p1.getText(), p2.getText()); window.showMenu(); });
-        JButton cue = new JButton("Change Cue"); cue.setAlignmentX(CENTER_ALIGNMENT); cue.addActionListener(e -> gameState.nextCue());
-        JButton back = new JButton("Back"); back.setAlignmentX(CENTER_ALIGNMENT); back.addActionListener(e -> window.showMenu());
-        box.add(title); box.add(new JLabel("Player 1:")); box.add(p1); box.add(new JLabel("Player 2:")); box.add(p2); box.add(Box.createVerticalStrut(12)); box.add(cue); box.add(save); box.add(back);
+        setLayout(new GridBagLayout());
+        setOpaque(true);
+
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+        box.setBackground(new Color(18,20,23,218));
+        box.setBorder(Theme.cardBorder());
+
+        JLabel title = Theme.label("Settings", 34, Font.BOLD);
+        title.setAlignmentX(CENTER_ALIGNMENT);
+
+        JLabel hint = Theme.label("Player names, cue style and table options", 14, Font.PLAIN);
+        hint.setForeground(Theme.BRASS);
+        hint.setAlignmentX(CENTER_ALIGNMENT);
+
+        JTextField p1 = Theme.textField(gameState.getPlayers()[0].getName());
+        JTextField p2 = Theme.textField(gameState.getPlayers()[1].getName());
+        JLabel p1Label = Theme.label("Player 1", 13, Font.BOLD);
+        JLabel p2Label = Theme.label("Player 2", 13, Font.BOLD);
+        JButton cue = Theme.button("Change Cue Style");
+        cue.addActionListener(e -> gameState.nextCue());
+        JButton save = Theme.button("Save Settings");
+        save.addActionListener(e -> {
+            gameState.setPlayerNames(p1.getText(), p2.getText());
+            window.showMenu();
+        });
+        JButton back = Theme.button("Back to Menu");
+        back.addActionListener(e -> window.showMenu());
+
+        box.add(title);
+        box.add(Box.createVerticalStrut(6));
+        box.add(hint);
+        box.add(Box.createVerticalStrut(28));
+        box.add(p1Label);
+        box.add(Box.createVerticalStrut(6));
+        box.add(p1);
+        box.add(Box.createVerticalStrut(14));
+        box.add(p2Label);
+        box.add(Box.createVerticalStrut(6));
+        box.add(p2);
+        box.add(Box.createVerticalStrut(24));
+        box.add(cue);
+        box.add(Box.createVerticalStrut(12));
+        box.add(save);
+        box.add(Box.createVerticalStrut(12));
+        box.add(back);
         add(box);
+
     }
 }
