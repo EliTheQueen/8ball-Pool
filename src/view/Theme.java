@@ -26,7 +26,7 @@ public class Theme {
 
     public static JButton button(String text) {
 
-        JButton button = new JButton(text);
+        JButton button = new BrassButton(text);
         button.setFont(BUTTON_FONT);
         button.setForeground(IVORY);
         button.setFocusPainted(false);
@@ -110,8 +110,8 @@ public class Theme {
         g.setComposite(oldComposite);
     }
 
-    private static class brassButton extends JButton {
-        brassButton(String text) {
+    private static class BrassButton extends JButton {
+        BrassButton(String text) {
             super(text);
             setOpaque(false);
             setContentAreaFilled(false);
