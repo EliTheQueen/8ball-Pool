@@ -37,13 +37,13 @@ public class GameWindow extends JFrame {
                 BorderFactory.createEmptyBorder(6, 0, 6, 0)
         ));
 
-        JButton menu = new JButton("Menu");
+        JButton menu = Theme.button("Menu");
         menu.addActionListener(e -> showMenu());
 
-        JButton restart = new JButton("Restart");
+        JButton restart = Theme.button("Restart");
         restart.addActionListener(e -> gameState.resetGame());
 
-        JButton fullscreen = new JButton("Fullscreen");
+        JButton fullscreen =Theme.button("Fullscreen");
         fullscreen.addActionListener(e -> toggleFullscreen());
 
         JComboBox<GameState.Spin> spin = new JComboBox<>(GameState.Spin.values());
