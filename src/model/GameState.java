@@ -167,7 +167,6 @@ public class GameState {
         pottedThisShot.add(b);
         pocketByBall.put(b, pocketIndex);
         if (b.getGroup() == Ball.Group.CUE) {
-            controller.SoundManager.playBallInHand();
             b.setX(220);
             b.setY(Table.HEIGHT / 2.0);
             b.setPotted(false);

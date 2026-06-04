@@ -42,8 +42,7 @@ public class PhysicsEngine {
     private void checkWallCollision(Ball b, Rectangle a) {
         double r = b.getRadius();
         boolean hit = false;
-        double speed = Math.hypot(b.getX(), b.getY());
-
+        double speed = Math.hypot(b.getVx(), b.getVy());
         if (b.getX() - r < a.x) {
             b.setX(a.x + r); b.setVx(-b.getVx() * RESTITUTION);
             hit = true;

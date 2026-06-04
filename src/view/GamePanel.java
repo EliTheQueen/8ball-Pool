@@ -339,7 +339,6 @@ public class GamePanel extends JPanel {
                 + "   •   Timer: " + gameState.getRemainingShotSeconds() + "s";
         FontMetrics fm = g.getFontMetrics();
         g.drawString(center, infoX + (infoW - fm.stringWidth(center)) / 2, infoY + 22);
-        drawPowerMeter(g, infoX + 22, infoY + 37, 142, 8);
 
         g.setFont(Theme.BODY_FONT.deriveFont(Font.BOLD, 11f));
         g.setColor(gameState.isGameOver() ? Theme.BRASS : Theme.BRASS);
@@ -352,26 +351,6 @@ public class GamePanel extends JPanel {
         g.drawString(msg, infoX + (infoW - fm.stringWidth(msg)) / 2, infoY + 44);
     }
 
-    private void drawPowerMeter(Graphics2D g, int x, int y, int w, int h) {
-        double ratio = Math.max(0.0, Math.min(cueController.getPower() / 42.0, 1.0));
-        g.setColor(new Color(231, 223, 210, 58));
-        g.fillRoundRect(x, y, w, h, h, h);
-        int fill = (int)Math.round(w * ratio);
-        if (fill > 0) {
-            Color low = new Color(45, 178, 93);
-            Color high = new Color(220, 52, 42);
-            g.setPaint(new LinearGradientPaint(x, y, x + w, y,
-                    new float[]{0f, .52f, 1f},
-                    new Color[]{low, new Color(226, 177, 53), high}));
-            g.fillRoundRect(x, y, fill, h, h, h);
-        }
-        g.setColor(new Color(231, 223, 210, 125));
-        g.setStroke(new BasicStroke(1f));
-        g.drawRoundRect(x, y, w, h, h, h);
-        g.setFont(Theme.BODY_FONT.deriveFont(Font.BOLD, 9f));
-        g.setColor(new Color(231, 223, 210, 180));
-        g.drawString("POWER", x + w + 8, y + h);
-    }
 
     private void drawBallInHandNotice(Graphics2D g) {
         if (!gameState.shouldShowBallInHandNotice()) return;
