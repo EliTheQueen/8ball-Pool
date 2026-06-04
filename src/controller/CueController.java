@@ -81,6 +81,30 @@ public class CueController extends MouseAdapter {
         Ball cueBall = gameState.getCueBall();
         cueBall.setVx(-Math.cos(angle) * power * 0.72);
         cueBall.setVy(-Math.sin(angle) * power * 0.72);
+        double shotX = -Math.cos(angle);
+        double shotY = -Math.sin(angle);
+
+        cueBall.clearSpin();
+
+        switch (gameState.getSpin()) {
+            case TOP -> {
+                cueBall.setSpinX(shotX * 0.55);
+                cueBall.setSpinY(shotY * 0.55);
+            }
+            case BACK -> {
+                cueBall.setSpinX(-shotX * 1.4);
+                cueBall.setSpinY(-shotY * 1.4);
+            }
+            case LEFT -> {
+                cueBall.setSpinX(shotY * 0.55);
+                cueBall.setSpinY(-shotX * 0.55);
+            }
+            case RIGHT -> {
+                cueBall.setSpinX(-shotY * 0.55);
+                cueBall.setSpinY(shotX * 0.55);
+            }
+            case NONE -> { }
+        }
         SoundManager.playCueStrike(power);
         gameState.startShot();
     }

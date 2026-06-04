@@ -31,9 +31,17 @@ public class PhysicsEngine {
     private void applyFriction(Ball b) {
         b.setVx(b.getVx() * FRICTION);
         b.setVy(b.getVy() * FRICTION);
+
+        b.setSpinX(b.getSpinX() * 0.985);
+        b.setSpinY(b.getSpinY() * 0.985);
+
         if (Math.abs(b.getVx()) < STOP_THRESHOLD) b.setVx(0);
         if (Math.abs(b.getVy()) < STOP_THRESHOLD) b.setVy(0);
+
+        if (Math.abs(b.getSpinX()) < 0.02) b.setSpinX(0);
+        if (Math.abs(b.getSpinY()) < 0.02) b.setSpinY(0);
     }
+
     private void moveBall(Ball b) {
         b.setX(b.getX() + b.getVx());
         b.setY(b.getY() + b.getVy());
@@ -44,21 +52,27 @@ public class PhysicsEngine {
         boolean hit = false;
         double speed = Math.hypot(b.getVx(), b.getVy());
         if (b.getX() - r < a.x) {
-            b.setX(a.x + r); b.setVx(-b.getVx() * RESTITUTION);
+            b.setX(a.x + r);
+            b.setVx(-b.getVx() * RESTITUTION);
+            b.setVy(b.getVy() + b.getSpinY() * 0.35);
             hit = true;
         }
         if (b.getX() + r > a.x + a.width) {
-            b.setX(a.x + a.width - r); b.setVx(-b.getVx() * RESTITUTION);
+            b.setX(a.x + a.width - r);
+            b.setVx(-b.getVx() * RESTITUTION);
+            b.setVy(b.getVy() + b.getSpinY() * 0.35);
             hit = true;
         }
         if (b.getY() - r < a.y) {
             b.setY(a.y + r);
             b.setVy(-b.getVy() * RESTITUTION);
+            b.setVx(b.getVx() + b.getSpinX() * 0.35);
             hit = true;
         }
         if (b.getY() + r > a.y + a.height) {
             b.setY(a.y + a.height - r);
             b.setVy(-b.getVy() * RESTITUTION);
+            b.setVx(b.getVx() + b.getSpinX() * 0.35);
             hit = true;
         }
 
@@ -122,12 +136,31 @@ public class PhysicsEngine {
     }
 
     private void applySpin(GameState state, Ball cue, double nx, double ny) {
-        double s = 0.45;
+        double shotSpeed = Math.hypot(cue.getVx(), cue.getVy());
+        if (shotSpeed < 0.2) return;
+
         switch (state.getSpin()) {
-            case TOP -> { cue.setVx(cue.getVx() + nx * s); cue.setVy(cue.getVy() + ny * s); }
-            case BACK -> { cue.setVx(cue.getVx() - nx * s); cue.setVy(cue.getVy() - ny * s); }
-            case LEFT -> { cue.setVx(cue.getVx() - ny * s); cue.setVy(cue.getVy() + nx * s); }
-            case RIGHT -> { cue.setVx(cue.getVx() + ny * s); cue.setVy(cue.getVy() - nx * s); }
+            case TOP -> {
+                cue.setVx(cue.getVx() + nx * 1.15);
+                cue.setVy(cue.getVy() + ny * 1.15);
+            }
+
+            case BACK -> {
+                cue.setVx(-nx * 2.8);
+                cue.setVy(-ny * 2.8);
+            }
+
+            case LEFT -> {
+                cue.setVx(cue.getVx() - ny * 0.85);
+                cue.setVy(cue.getVy() + nx * 0.85);
+            }
+
+            case RIGHT -> {
+                cue.setVx(cue.getVx() + ny * 0.85);
+                cue.setVy(cue.getVy() - nx * 0.85);
+            }
+
+            case NONE -> { }
         }
     }
 

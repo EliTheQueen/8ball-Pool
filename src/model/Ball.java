@@ -14,6 +14,7 @@ public class Ball {
     private final Group group;
     private boolean potted;
     private long pocketAnimationStartMillis = 0L;
+    private double spinX, spinY;
 
     public Ball(double x, double y, double radius, int number, Group group, Color color) {
         this.x = x;
@@ -50,6 +51,18 @@ public class Ball {
         if (pocketAnimationStartMillis == 0L) return 1.0;
         return Math.min(1.0, (System.currentTimeMillis() - pocketAnimationStartMillis) / 520.0);
     }
+
+    public double getSpinX() { return spinX; }
+    public void setSpinX(double spinX) { this.spinX = spinX; }
+
+    public double getSpinY() { return spinY; }
+    public void setSpinY(double spinY) { this.spinY = spinY; }
+
+    public void clearSpin() {
+        spinX = 0;
+        spinY = 0;
+    }
+
     public boolean isMoving() { return Math.hypot(vx, vy) > 0.15; }
     public void stop() { vx = 0; vy = 0; }
 
